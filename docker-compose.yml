@@ -1,0 +1,48 @@
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: iot
+      POSTGRES_PASSWORD: iot
+      POSTGRES_DB: iot
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./services/backend
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://iot:iot@db:5432/iot
+      PORT: 4000
+
+  frontend:
+    build:
+      context: ./services/frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  simulator:
+    build:
+      context: ./scripts/simulator
+    depends_on:
+      - backend
+    environment:
+      TARGET_URL: http://backend:4000/api/ingest
+      DEVICES: "dev-1,dev-2,dev-3,dev-4,dev-5"
+      PERIOD_MS: 3000
+
+
+
+
+volumes:
+  pgdata: {}
