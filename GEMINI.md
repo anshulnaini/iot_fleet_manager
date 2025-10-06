@@ -62,7 +62,8 @@ IOT_FLEET_MANAGER/
 │  │     └─ lib/
 │  │        ├─ db.ts          # Prisma client singleton
 │  │        ├─ rules.ts       # threshold evaluation
-│  │        └─ ws.ts          # WebSocket broadcast helper
+│  │        ├─ ws.ts          # WebSocket broadcast helper
+|  |        └─ validation.ts  # Validation logic for incoming telemetry
 │  │
 │  └─ frontend/               # Next.js (App Router)
 │     ├─ Dockerfile
