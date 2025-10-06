@@ -19,9 +19,13 @@ services:
       - "4000:4000"
     depends_on:
       - db
+    volumes:
+      - ./services/backend:/app
+      - /app/node_modules
     environment:
-      DATABASE_URL: postgresql://iot:iot@db:5432/iot
-      PORT: 4000
+      DATABASE_URL: postgres://iot:iot@db:5432/iot
+      PORT: 4000  
+    command: npm run dev
 
   frontend:
     build:

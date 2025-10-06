@@ -1,0 +1,61 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+model Device {
+  id          String      @id @default(cuid())
+  name        String
+  type        String
+  lastSeenAt  DateTime    @updatedAt
+  tags        String[]
+  locationHint String?
+
+  telemetry   Telemetry[]
+  alerts      Alert[]
+}
+
+model Telemetry {
+  id          String      @id @default(cuid())
+  deviceId    String
+  timestamp   DateTime    @default(now())
+  temperature_c Float?
+  humidity_pct Float?
+  battery_pct Float?
+  extras      Json?
+
+  device      Device      @relation(fields: [deviceId], references: [id])
+
+  @@index([deviceId, timestamp])
+}
+
+model Rule {
+  id          String      @id @default(cuid())
+  metric      String
+  operator    String
+  value       Float
+  severity    String
+  enabled     Boolean     @default(true)
+
+  alerts      Alert[]
+}
+
+model Alert {
+  id          String      @id @default(cuid())
+  deviceId    String
+  ruleId      String
+  createdAt   DateTime    @default(now())
+  severity    String
+  message     String
+  context     Json?
+
+  device      Device      @relation(fields: [deviceId], references: [id])
+  rule        Rule        @relation(fields: [ruleId], references: [id])
+
+  @@index([deviceId, createdAt])
+}
