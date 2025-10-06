@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { telemetrySchema } from '../lib/validation';
 import prisma from '../lib/db';
+import { Prisma } from '@prisma/client';
 
 const router = Router();
 
@@ -9,7 +10,7 @@ router.post('/', async (req, res) => {
     const validatedData = telemetrySchema.parse(req.body);
     const { deviceId, metrics, extras } = validatedData;
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.device.upsert({
         where: { id: deviceId },
         update: { lastSeenAt: new Date() },
