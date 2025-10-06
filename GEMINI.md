@@ -42,8 +42,8 @@ IOT_FLEET_MANAGER/
 ├─ README.md
 ├─ .gitignore
 ├─ .env.example
-├─ docker-data/
-│  └─ pg/                     # Postgres volume (local)
+├─ docker-data/      # optional backups ((volumes are now managed by Docker: `pgdata` instead of ./docker-data/pg))
+│
 ├─ services/
 │  ├─ backend/                # Node/Express API + WebSocket + Prisma
 │  │  ├─ Dockerfile
