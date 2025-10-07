@@ -1,5 +1,6 @@
 import express from 'express';
 import ingestRouter from './routes/ingest';
+import alertsRouter from './routes/alerts';
 
 const app = express();
 
@@ -10,5 +11,6 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/ingest', ingestRouter);
+app.use('/api/alerts', alertsRouter);
 
 export default app;
