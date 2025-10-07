@@ -10,10 +10,13 @@ node_modules/
 # Production
 /build
 /dist
+.next/
 
 # Misc
 .DS_Store
 *.pem
+ws-log.txt
+test-ws.js
 
 # Debug
 npm-debug.log*
