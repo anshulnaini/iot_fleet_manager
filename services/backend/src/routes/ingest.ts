@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { telemetrySchema } from '../lib/validation';
 import prisma from '../lib/db';
-import { Prisma } from '@prisma/client';
+import { Prisma, Telemetry } from '@prisma/client';
 import evaluateRules from '../lib/rules';
+import { broadcast } from '../lib/ws';
 
 const router = Router();
 
@@ -34,9 +35,12 @@ router.post('/', async (req, res) => {
       return newTelemetry;
     });
 
+    broadcast({ type: 'telemetry', payload: { deviceId, rec: telemetry } });
+
     await evaluateRules(telemetry);
 
     res.status(202).json({ ok: true });
+
   } catch (error) {
     res.status(400).json({ error });
   }

@@ -1,5 +1,6 @@
 import prisma from './db';
 import { Telemetry } from '@prisma/client';
+import { broadcast } from './ws';
 
 async function evaluateRules(telemetry: Telemetry) {
   console.log('Evaluating rules for telemetry:', telemetry);
@@ -30,7 +31,7 @@ async function evaluateRules(telemetry: Telemetry) {
       console.log(`Rule match: ${match}`);
 
       if (match) {
-        await prisma.alert.create({
+        const alert = await prisma.alert.create({
           data: {
             deviceId: telemetry.deviceId,
             ruleId: rule.id,
@@ -43,6 +44,7 @@ async function evaluateRules(telemetry: Telemetry) {
           },
         });
         console.log('Created alert');
+        broadcast({ type: 'alert', payload: alert });
       }
     }
   }
