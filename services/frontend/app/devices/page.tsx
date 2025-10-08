@@ -1,35 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useLiveStore } from '../live-store';
 import { Box, Heading, Table, Thead, Tbody, Tr, Th, Td } from '@chakra-ui/react';
 
-interface Telemetry {
-  id: string;
-  timestamp: string;
-  temperature_c: number | null;
-  humidity_pct: number | null;
-  battery_pct: number | null;
-}
-
-interface Device {
-  id: string;
-  name: string;
-  type: string;
-  lastSeenAt: string;
-  telemetry: Telemetry[];
-}
-
 export default function DevicesPage() {
-  const [devices, setDevices] = useState<Device[]>([]);
-
-  useEffect(() => {
-    async function fetchDevices() {
-      const res = await fetch('/api/devices');
-      const data = await res.json();
-      setDevices(data);
-    }
-    fetchDevices();
-  }, []);
+  const devices = useLiveStore((state) => state.devices);
 
   return (
     <Box p={8}>

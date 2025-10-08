@@ -1,26 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useLiveStore } from '../live-store';
 import { Box, Heading, List, ListItem, Text } from '@chakra-ui/react';
 
-interface Alert {
-  id: string;
-  deviceId: string;
-  message: string;
-  createdAt: string;
-}
-
 export default function AlertsPage() {
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-
-  useEffect(() => {
-    async function fetchAlerts() {
-      const res = await fetch('/api/alerts?active=true');
-      const data = await res.json();
-      setAlerts(data);
-    }
-    fetchAlerts();
-  }, []);
+  const alerts = useLiveStore((state) => state.alerts);
 
   return (
     <Box p={8}>
