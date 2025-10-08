@@ -8,7 +8,7 @@ function generateTelemetry(deviceId) {
   return {
     deviceId,
     metrics: {
-      temperature_c: 20 + Math.random() * 10,
+      temperature_c: 20 + Math.random() * 10.5,
       humidity_pct: 40 + Math.random() * 20,
       battery_pct: 100 - Math.random() * 10,
     },
