@@ -3,6 +3,8 @@ import cors from 'cors';
 import ingestRouter from './routes/ingest';
 import alertsRouter from './routes/alerts';
 import devicesRouter from './routes/devices';
+import rulesRouter from './routes/rules';
+import telemetryRouter from './routes/telemetry';
 
 const app = express();
 
@@ -16,5 +18,7 @@ app.get('/health', (req, res) => {
 app.use('/api/ingest', ingestRouter);
 app.use('/api/alerts', alertsRouter);
 app.use('/api/devices', devicesRouter);
+app.use('/api/rules', rulesRouter);
+app.use('/api/telemetry', telemetryRouter);
 
 export default app;
