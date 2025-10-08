@@ -29,7 +29,7 @@ model Telemetry {
   battery_pct Float?
   extras      Json?
 
-  device      Device      @relation(fields: [deviceId], references: [id])
+  device      Device      @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 
   @@index([deviceId, timestamp])
 }
@@ -54,7 +54,7 @@ model Alert {
   message     String
   context     Json?
 
-  device      Device      @relation(fields: [deviceId], references: [id])
+  device      Device      @relation(fields: [deviceId], references: [id], onDelete: Cascade)
   rule        Rule        @relation(fields: [ruleId], references: [id])
 
   @@index([deviceId, createdAt])

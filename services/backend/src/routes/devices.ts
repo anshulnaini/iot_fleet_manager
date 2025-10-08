@@ -42,4 +42,41 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.post('/', async (req, res) => {
+  try {
+    const device = await prisma.device.create({
+      data: req.body,
+    });
+    res.json(device);
+  } catch (error) {
+    console.error('Error creating device:', error);
+    res.status(500).json({ error: 'Error creating device' });
+  }
+});
+
+router.put('/:id', async (req, res) => {
+  try {
+    const device = await prisma.device.update({
+      where: { id: req.params.id },
+      data: req.body,
+    });
+    res.json(device);
+  } catch (error) {
+    console.error(`Error updating device ${req.params.id}:`, error);
+    res.status(500).json({ error: `Error updating device ${req.params.id}` });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  try {
+    await prisma.device.delete({
+      where: { id: req.params.id },
+    });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error(`Error deleting device ${req.params.id}:`, error);
+    res.status(500).json({ error: `Error deleting device ${req.params.id}` });
+  }
+});
+
 export default router;
