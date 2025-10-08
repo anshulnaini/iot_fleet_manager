@@ -47,6 +47,7 @@ IOT_FLEET_MANAGER/
 ├─ services/
 │  ├─ backend/                # Node/Express API + WebSocket + Prisma
 │  │  ├─ Dockerfile
+│  │  ├─ README.md           # Backend-specific documentation
 │  │  ├─ package.json
 │  │  ├─ tsconfig.json
 │  │  ├─ prisma/
@@ -57,8 +58,10 @@ IOT_FLEET_MANAGER/
 │  │     ├─ seed.ts           # seeds default rule(s)
 │  │     ├─ routes/
 │  │     │  ├─ ingest.ts      # POST /api/ingest
-│  │     │  ├─ devices.ts     # GET/POST /api/devices; GET /api/devices/:id
-│  │     │  └─ alerts.ts      # GET /api/alerts
+│  │     │  ├─ devices.ts     # CRUD for devices
+│  │     │  ├─ alerts.ts      # CRUD for alerts
+│  │     │  ├─ rules.ts       # CRUD for rules
+│  │     │  └─ telemetry.ts   # CRUD for telemetry
 │  │     └─ lib/
 │  │        ├─ db.ts          # Prisma client singleton
 │  │        ├─ rules.ts       # threshold evaluation
@@ -66,6 +69,7 @@ IOT_FLEET_MANAGER/
 |  |        └─ validation.ts  # Validation logic for incoming telemetry
 │  │
 │  └─ frontend/               # Next.js (App Router)
+|     ├─ README.md
 │     ├─ Dockerfile
 │     ├─ package.json
 │     ├─ tsconfig.json
@@ -96,48 +100,45 @@ Device: id, name, type, lastSeenAt, tags[], locationHint?
 
 Telemetry: deviceId, timestamp, temperature_c?, humidity_pct?, battery_pct?, extras? (JSON)
 
-Rule: metric, operator (" >",">=","<","<=" ), value, severity, enabled
+Rule: metric, operator (" >","=-","<","<=" ), value, severity, enabled
 
 Alert: deviceId, ruleId, createdAt, severity, message, context?
 
 Key indexes: (deviceId, timestamp) on Telemetry; (deviceId, createdAt) on Alert.
 
 API Contracts (Backend)
-Telemetry Ingest
 
-POST /api/ingest
+### Telemetry Ingest
+-   `POST /api/ingest`: Endpoint for devices to post their telemetry data.
 
-{
-  "deviceId": "dev-001",
-  "timestamp": "2025-08-18T23:00:00Z",
-  "metrics": {
-    "temperature_c": 21.7,
-    "humidity_pct": 48.3,
-    "battery_pct": 93
-  },
-  "extras": { "door_open": false }
-}
+### Devices
+-   `GET /api/devices`: Get a list of all devices.
+-   `POST /api/devices`: Create a new device.
+-   `GET /api/devices/:id`: Get a specific device by ID.
+-   `PUT /api/devices/:id`: Update a specific device.
+-   `DELETE /api/devices/:id`: Delete a specific device.
 
+### Rules
+-   `GET /api/rules`: Get a list of all rules.
+-   `POST /api/rules`: Create a new rule.
+-   `GET /api/rules/:id`: Get a specific rule by ID.
+-   `PUT /api/rules/:id`: Update a specific rule.
+-   `DELETE /api/rules/:id`: Delete a specific rule.
 
-Behavior: Validate → upsert Device (update lastSeenAt) → insert Telemetry → evaluate Rules → broadcast events (type: "telemetry" and type: "alert").
+### Alerts
+-   `GET /api/alerts`: Get a list of all alerts.
+-   `GET /api/alerts?rule_enabled=true`: Get a list of alerts from currently enabled rules.
+-   `GET /api/alerts/:id`: Get a specific alert by ID.
+-   `DELETE /api/alerts/:id`: Delete a specific alert.
 
-Devices
+### Telemetry
+-   `GET /api/telemetry`: Get a list of the latest telemetry records.
+-   `GET /api/telemetry/:id`: Get a specific telemetry record by ID.
+-   `DELETE /api/telemetry/:id`: Delete a specific telemetry record.
 
-GET /api/devices → list with latest telemetry snapshot
-
-POST /api/devices → { id?, name, type, tags?, locationHint? }
-
-GET /api/devices/:id → device + recent telemetry (paginated later)
-
-Alerts
-
-GET /api/alerts?active=true → latest active alerts
-
-Health & Metrics
-
-GET /health → { ok: true }
-
-GET /metrics → Prometheus exposition
+### Health & Metrics
+-   `GET /health`: Returns `{ ok: true }`.
+-   `GET /metrics`: Prometheus exposition.
 
 Live (WebSocket)
 
@@ -148,78 +149,6 @@ Messages:
 { "type": "telemetry", "payload": { "deviceId": "dev-001", "rec": { /* Telemetry row */ } } }
 { "type": "alert",     "payload": { /* Alert row */ } }
 
-Simulator
-
-Runs as scripts/simulator service in Compose.
-
-Env:
-
-TARGET_URL=http://backend:4000/api/ingest
-
-DEVICES="dev-1,dev-2,dev-3,dev-4,dev-5"
-
-PERIOD_MS=3000
-
-Emits Gaussian-ish values for temp/humidity; slow battery drain; occasional door_open.
-
-Environment Variables
-Root .env.example
-
-(Reference file for developers; not used directly by Compose.)
-
-Backend
-
-DATABASE_URL=postgresql://iot:iot@db:5432/iot
-
-PORT=4000
-
-WS_ENABLED=true (present for clarity; WS starts by default)
-
-Frontend
-
-NEXT_PUBLIC_API_BASE=http://localhost:4000
-
-NEXT_PUBLIC_WS_URL=ws://localhost:4000/live
-
-Simulator
-
-TARGET_URL, DEVICES, PERIOD_MS (see above)
-
-Development Workflow
-Bring up the stack
-docker compose up --build
-
-First-time DB migration & seed
-docker compose exec backend npx prisma migrate dev --name init
-docker compose exec backend npm run seed
-
-Useful local URLs
-
-Frontend: http://localhost:3000
-
-Devices API: http://localhost:4000/api/devices
-
-Alerts API: http://localhost:4000/api/alerts?active=true
-
-Health: http://localhost:4000/health
-
-Metrics: http://localhost:4000/metrics
-
-Coding Conventions
-
-TypeScript strict in both services.
-
-Validation at API boundaries via Zod (ingest payload).
-
-Prisma singleton per service process (lib/db.ts).
-
-Routing: Express routers per resource (routes/*).
-
-Events: structured JSON over WS { type, payload }.
-
-Logging: start simple (console), add pino later if needed.
-
-Testing: split unit vs. integration under tests/.
 
 Common Gemini Tasks (Examples)
 
@@ -239,69 +168,11 @@ Accept it in ingest.ts Zod schema & write to DB.
 Surface on device list/detail pages.
 
 “Add a new rule for low humidity (< 30%)”
-Update seeder (src/seed.ts) or create via Prisma in a new script; ensure rules.ts evaluates the metric and WS broadcasts alerts.
+Use the `POST /api/rules` endpoint or update the seeder (`src/seed.ts`).
 
 “Show a 24h sparkline on Device Detail”
 Fetch recent telemetry in devices/[id]/page.tsx; render a lightweight client-side chart (e.g., SVG path or minimal chart lib).
 
-“Add SSE fallback for WS” (stretch)
-Introduce /events endpoint; push text/event-stream; add EventSource client code gated by feature detection.
-
-Testing Strategy (Stage 1)
-
-Unit (backend):
-
-Zod validators for ingest payloads.
-
-Rule comparator logic (rules.ts).
-
-Integration (backend):
-
-POST /api/ingest → row in Telemetry, Device.lastSeenAt updated, Alert created when threshold exceeded.
-
-Frontend smoke:
-
-Devices page lists rows and shows latest.temperature_c.
-
-Alerts page renders active alerts.
-
-Troubleshooting
-
-Backend cannot connect to DB: check DATABASE_URL in backend env; ensure db service is healthy.
-
-Prisma migrate errors: remove local docker-data/pg only if safe; re-up and re-migrate.
-
-No live updates: confirm WS path /live is accessible and frontend NEXT_PUBLIC_WS_URL points to backend.
-
-Simulator not posting: verify TARGET_URL (should be http://backend:4000/api/ingest within Compose network).
-
-Roadmap (Later Stages)
-
-MQTT ingestion (Mosquitto/EMQX), QoS & backpressure
-
-Multi-tenant orgs & auth (JWT/NextAuth)
-
-TimescaleDB hypertables; retention policies
-
-Rich rule engine (compound conditions, durations)
-
-Device locations (maps), GPS, geofencing
-
-Alert channels (email/webhook/Slack)
-
-Edge gateways & OTA flows
-
-Glossary
-
-Device: a logical producer of telemetry (real or simulated).
-
-Telemetry: time-stamped numeric readings and optional metadata.
-
-Rule: a simple threshold on a metric with a comparison operator.
-
-Alert: a record created when a rule condition is met.
-
-WS: WebSockets for pushing events to the frontend.
 
 Editing Notes for Agents
 
