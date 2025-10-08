@@ -34,7 +34,12 @@ interface LiveStore {
 export const useLiveStore = create<LiveStore>((set) => ({
   devices: [],
   alerts: [],
-  addDevice: (device) => set((state) => ({ devices: [...state.devices, device] })),
+  addDevice: (device) =>
+    set((state) => ({
+      devices: state.devices.find((d) => d.id === device.id)
+        ? state.devices.map((d) => (d.id === device.id ? device : d))
+        : [...state.devices, device],
+    })),
   addAlert: (alert) => set((state) => ({ alerts: [alert, ...state.alerts] })),
   updateDeviceTelemetry: (deviceId, telemetry) =>
     set((state) => ({

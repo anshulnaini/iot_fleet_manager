@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLiveStore } from './live-store';
 
 export function LiveProvider({ children }: { children: React.ReactNode }) {
@@ -21,7 +21,9 @@ export function LiveProvider({ children }: { children: React.ReactNode }) {
     }
 
     fetchInitialData();
+  }, [addDevice, addAlert]);
 
+  useEffect(() => {
     const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:4000/live');
 
     ws.onopen = () => {
@@ -49,7 +51,7 @@ export function LiveProvider({ children }: { children: React.ReactNode }) {
     return () => {
       ws.close();
     };
-  }, [addAlert, updateDeviceTelemetry, addDevice]);
+  }, [addAlert, updateDeviceTelemetry]);
 
   return <>{children}</>;
 }
