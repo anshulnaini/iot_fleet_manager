@@ -36,6 +36,8 @@ Postgres + Prisma: familiar, ergonomic. (TimescaleDB optional later.)
 
 Monorepo: one place to navigate; Docker for identical envs.
 
+Frontend uses Chakra UI for components, Zustand for state, and React Hook Form for forms.
+
 Services & Directories
 IOT_FLEET_MANAGER/
 ├─ docker-compose.yml
@@ -73,12 +75,16 @@ IOT_FLEET_MANAGER/
 │     ├─ Dockerfile
 │     ├─ package.json
 │     ├─ tsconfig.json
-│     ├─ next.config.ts
+│     ├─ next.config.mjs
 │     └─ app/
 │        ├─ layout.tsx
 │        ├─ page.tsx          # Dashboard (links, summary)
+│        ├─ providers.tsx     # Chakra UI and other context providers
+│        ├─ live-provider.tsx # WebSocket connection and data fetching
+│        ├─ live-store.ts     # Zustand store for live data
 │        ├─ devices/
 │        │  ├─ page.tsx       # Device list (last-seen + latest metrics)
+│        │  ├─ device-form.tsx # Form for creating/editing devices
 │        │  └─ [id]/
 │        │     └─ page.tsx    # Device detail (recent telemetry)
 │        └─ alerts/
